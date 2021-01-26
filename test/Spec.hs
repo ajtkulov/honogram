@@ -12,6 +12,8 @@ main = hspec $ do
       evalState (inner [3] [Unknown, Unknown] 0 0) Map.empty `shouldBe` False
     it "possible row" $ do 
       evalState (inner [2] [Unknown, Unknown] 0 0) Map.empty `shouldBe` True
+    it "possible row - 1" $ do 
+      evalState (inner [1] [Unknown, Fill, Unknown] 0 0) Map.empty `shouldBe` True
     it "property - exact fix" $ do 
       property $ prop_fit genList
     it "property - not fix" $ do 
@@ -20,6 +22,8 @@ main = hspec $ do
       property $ prop_fit genList1
     it "property - not fix" $ do 
       property $ prop_not_fit genList1
+    it "err1" $ do 
+       best [1] [Unknown , Unknown , Unknown ] `shouldBe` [Unknown , Unknown , Unknown ]
 
 genList :: Gen [Int]
 genList = shuffle [1,2,3,1,4,2,3,4,2,5]

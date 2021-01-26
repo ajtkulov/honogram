@@ -42,7 +42,6 @@ inner (r: rs) [] pos islandPos = return False
 inner rowInfo@(ri: ris) (r: rs) pos islandPos | r == Empty = inner rowInfo rs (pos + 1) islandPos
 inner rowInfo@(ri: ris) row@(r: rs) pos islandPos | r == Fill && canFit (take (ri + 1) row) ri = inner ris (drop (ri + 1) row) (pos + ri + 1) (islandPos + 1)
 inner rowInfo@(ri: ris) row@(r: rs) pos islandPos | r == Fill = return False
-inner rowInfo@(ri: ris) row@(r: rs) pos islandPos | r == Unknown && not (canFit (take (ri + 1) row) ri) = return False
 inner rowInfo@(ri: ris) row@(r: rs) pos islandPos | r == Unknown = do
     n1 <- getOrUpdate ((pos + ri + 1, islandPos + 1))  (inner ris (drop (ri + 1) row) (pos + ri + 1) (islandPos + 1))
     n2 <- getOrUpdate ((pos + 1, islandPos))  (inner rowInfo (drop 1 row) (pos + 1) islandPos)
@@ -121,6 +120,26 @@ mkFinal :: [[[Int]]] -> [[[Int]]] -> (Field, FieldState)
 mkFinal rows cols = (field, mkEmptyState field)
   where
     field = mkField rows cols
+
+solve :: Field -> FieldState -> FieldState
+solve field state = if next == state 
+    then state 
+    else solve field next
+  where
+    next = enhance field state
+
+ex1 = mkFinal r c
+  where 
+    r = [[[1,1], [1]]]
+    c = [[[1], [1], [1]]]
+
+sol1 = solve (fst ex1) (snd ex1)
+iter1 = iter (fst ex1) (snd ex1)
+
+iter field state = iterate (\x -> solve field x) state
+
+
+
 
 
 
