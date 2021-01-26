@@ -7,7 +7,8 @@ import qualified Data.Map.Strict as Map
 import Control.Monad.State.Lazy
 import Data.Tuple.Select
 import Data.Maybe
-
+import Control.Applicative
+import Control.Exception
 
 someFunc :: IO ()
 someFunc = putStrLn "someFunc"
@@ -18,8 +19,8 @@ type RowInfo = [Int]
 type Row = [CellType]
 type Cache = Map.Map (Int, Int) Bool
 type St = State Cache Bool
-data Field = Field {rows :: [Row], cols :: [Row]} deriving Show
-data FieldState = FieldState {byRow :: [Row]} deriving Show
+data Field = Field {rows :: [RowInfo], cols :: [RowInfo]} deriving (Show, Eq)
+data FieldState = FieldState {byRow :: [Row]} deriving (Show, Eq)
 
 
 negateCellType :: CellType -> CellType
@@ -87,13 +88,39 @@ best rowInfo row =
     where 
         b = better rowInfo row
 
+transpose :: [[a]] -> [[a]]
+transpose = getZipList . traverse ZipList
+
+enhance :: Field -> FieldState -> FieldState
+enhance field state = FieldState rr
+  where
+    z = zip (rows field) (byRow state)
+    z :: [(RowInfo, Row)]
+    res = map (\x -> best (fst x) (snd x)) z
+    res :: [Row]
+    z1 = zip (cols field) (transpose res)
+    res1 = map (\x -> best (fst x) (snd x)) z1
+    rr = transpose res1
 
 
+internalAssert :: [[[Int]]] -> Bool
+internalAssert x = all (\x -> length x == 5) (init x) && length (last x) <= 5
 
+mkField :: [[[Int]]] -> [[[Int]]] -> Field
+mkField rows cols = assert (internalAssert rows && internalAssert cols) $ Field (concat rows) (concat cols)
 
+mkEmptyState :: Field -> FieldState
+mkEmptyState field = FieldState res
+  where 
+    r = length $ rows field
+    c = length $ cols field
+    rr = take c $ repeat Unknown
+    res = take r $ repeat rr
 
-
-
+mkFinal :: [[[Int]]] -> [[[Int]]] -> (Field, FieldState)
+mkFinal rows cols = (field, mkEmptyState field)
+  where
+    field = mkField rows cols
 
 
 
