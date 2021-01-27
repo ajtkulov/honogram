@@ -14,13 +14,22 @@ someFunc :: IO ()
 someFunc = putStrLn "someFunc"
 
 
-data CellType = Empty | Fill | Unknown deriving (Show, Eq)
+data CellType = Empty | Fill | Unknown deriving Eq
 type RowInfo = [Int]
 type Row = [CellType]
 type Cache = Map.Map (Int, Int) Bool
 type St = State Cache Bool
 data Field = Field {rows :: [RowInfo], cols :: [RowInfo]} deriving (Show, Eq)
-data FieldState = FieldState {byRow :: [Row]} deriving (Show, Eq)
+data FieldState = FieldState {byRow :: [Row]} deriving Eq
+
+instance Show CellType where
+  show Empty   = "X"
+  show Fill    = "*"
+  show Unknown = "?"
+
+instance Show FieldState where
+  show b = (foldl (\x y -> x ++ "\n" ++ y) "" $ map s $ byRow b) ++ "\n"
+    where s row = foldl (\x y -> x ++ show y) "" row
 
 
 negateCellType :: CellType -> CellType
@@ -32,16 +41,18 @@ cleanRow row = all (\x -> x /= Fill) row
 
 canFit :: Row -> Int -> Bool
 canFit row size | length row == size = all (\x -> x /= Empty) row
-canFit row size = last row /= Fill && all (\x -> x /= Empty) (init row) 
+canFit row size | length row == size + 1 = last row /= Fill && all (\x -> x /= Empty) (init row) 
+canFit row size = False
 
 inner :: RowInfo -> Row -> Int -> Int -> St
 -- recursion by rowInfo
-inner [] row pos islandPos = return $ cleanRow $ drop pos row
+inner [] row pos islandPos = return $ cleanRow row
 inner rowInfo row pos islandPos | sum rowInfo + length rowInfo - 1 > length row = return False
 inner (r: rs) [] pos islandPos = return False
 inner rowInfo@(ri: ris) (r: rs) pos islandPos | r == Empty = inner rowInfo rs (pos + 1) islandPos
 inner rowInfo@(ri: ris) row@(r: rs) pos islandPos | r == Fill && canFit (take (ri + 1) row) ri = inner ris (drop (ri + 1) row) (pos + ri + 1) (islandPos + 1)
 inner rowInfo@(ri: ris) row@(r: rs) pos islandPos | r == Fill = return False
+inner rowInfo@(ri: ris) row@(r: rs) pos islandPos | r == Unknown && not (canFit (take (ri + 1) row) ri) = inner rowInfo rs (pos + 1) islandPos  
 inner rowInfo@(ri: ris) row@(r: rs) pos islandPos | r == Unknown = do
     n1 <- getOrUpdate ((pos + ri + 1, islandPos + 1))  (inner ris (drop (ri + 1) row) (pos + ri + 1) (islandPos + 1))
     n2 <- getOrUpdate ((pos + 1, islandPos))  (inner rowInfo (drop 1 row) (pos + 1) islandPos)
@@ -106,7 +117,9 @@ internalAssert :: [[[Int]]] -> Bool
 internalAssert x = all (\x -> length x == 5) (init x) && length (last x) <= 5
 
 mkField :: [[[Int]]] -> [[[Int]]] -> Field
-mkField rows cols = assert (internalAssert rows && internalAssert cols) $ Field (concat rows) (concat cols)
+mkField rows cols = assert (internalAssert rows && internalAssert cols) $ 
+                    assert ((sum $ concat $ concat rows) == (sum $ concat $ concat cols)) $ 
+                    Field (concat rows) (concat cols)
 
 mkEmptyState :: Field -> FieldState
 mkEmptyState field = FieldState res
@@ -133,12 +146,77 @@ ex1 = mkFinal r c
     r = [[[1,1], [1]]]
     c = [[[1], [1], [1]]]
 
+ex2 = mkFinal r c
+  where 
+    r = [[
+      [2, 1, 1],
+      [2, 2, 2, 1, 1],
+      [3, 2, 2, 2, 2],
+      [3, 6, 2, 2, 1],
+      [2, 16, 2]], 
+      [
+      [20, 2, 1],
+      [22, 2],
+      [20, 2],
+      [28],
+      [25]],
+      [
+      [22, 1],
+      [24],
+      [1, 19],
+      [2, 16],
+      [1, 2, 18]], 
+      [
+      [1, 1, 2, 17],
+      [3, 1, 15],
+      [3, 2, 13],
+      [4, 10],
+      [15]]]
+    c = [[
+      [2],
+      [1, 4],
+      [1, 4],
+      [1, 2, 2],
+      [2, 2, 3]],
+      [
+      [2, 2, 5, 1],
+      [1, 9, 1],
+      [2, 7, 1],
+      [10, 2, 1],
+      [10, 2, 1]],
+      [
+      [10, 1],
+      [1, 9, 3],
+      [2, 16],
+      [19],
+      [18]],
+      [[17],
+      [2, 17],
+      [18],
+      [17],
+      [15]],
+      [
+      [19],
+      [16],
+      [14],
+      [16],
+      [3, 11]],
+      [[12],
+      [3, 9],
+      [2, 9],
+      [3, 2, 2],
+      [2, 2, 1]]]
+
+
+
 sol1 = solve (fst ex1) (snd ex1)
 iter1 = iter (fst ex1) (snd ex1)
 
 iter field state = iterate (\x -> solve field x) state
 
 
+sol ex = solve (fst ex) (snd ex)
+ite ex  = iter (fst ex) (snd ex)
 
 
 
