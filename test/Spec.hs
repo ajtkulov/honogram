@@ -14,13 +14,13 @@ main = hspec $ do
       evalState (inner [2] [Unknown, Unknown] 0 0) Map.empty `shouldBe` True
     it "possible row - 1" $ do 
       evalState (inner [1] [Unknown, Fill, Unknown] 0 0) Map.empty `shouldBe` True
-    it "property - exact fix" $ do 
+    it "property - exact fit" $ do 
       property $ prop_fit genList
-    it "property - not fix" $ do 
+    it "property - not fit" $ do 
       property $ prop_not_fit genList
-    it "property - exact fix" $ do 
+    it "property - exact fit" $ do 
       property $ prop_fit genList1
-    it "property - not fix" $ do 
+    it "property - not fit" $ do 
       property $ prop_not_fit genList1
     it "err1" $ do 
        best [1] [Unknown , Unknown , Unknown ] `shouldBe` [Unknown , Unknown , Unknown ]

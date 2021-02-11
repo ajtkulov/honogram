@@ -10,9 +10,6 @@ import Data.Maybe
 import Control.Applicative
 import Control.Exception
 
-someFunc :: IO ()
-someFunc = putStrLn "someFunc"
-
 
 data CellType = Empty | Fill | Unknown deriving Eq
 type RowInfo = [Int]
@@ -141,87 +138,8 @@ solve field state = if next == state
   where
     next = enhance field state
 
-ex1 = mkFinal r c
-  where 
-    r = [[[1,1], [1]]]
-    c = [[[1], [1], [1]]]
-
-ex2 = mkFinal r c
-  where 
-    r = [[
-      [2, 1, 1],
-      [2, 2, 2, 1, 1],
-      [3, 2, 2, 2, 2],
-      [3, 6, 2, 2, 1],
-      [2, 16, 2]], 
-      [
-      [20, 2, 1],
-      [22, 2],
-      [20, 2],
-      [28],
-      [25]],
-      [
-      [22, 1],
-      [24],
-      [1, 19],
-      [2, 16],
-      [1, 2, 18]], 
-      [
-      [1, 1, 2, 17],
-      [3, 1, 15],
-      [3, 2, 13],
-      [4, 10],
-      [15]]]
-    c = [[
-      [2],
-      [1, 4],
-      [1, 4],
-      [1, 2, 2],
-      [2, 2, 3]],
-      [
-      [2, 2, 5, 1],
-      [1, 9, 1],
-      [2, 7, 1],
-      [10, 2, 1],
-      [10, 2, 1]],
-      [
-      [10, 1],
-      [1, 9, 3],
-      [2, 16],
-      [19],
-      [18]],
-      [[17],
-      [2, 17],
-      [18],
-      [17],
-      [15]],
-      [
-      [19],
-      [16],
-      [14],
-      [16],
-      [3, 11]],
-      [[12],
-      [3, 9],
-      [2, 9],
-      [3, 2, 2],
-      [2, 2, 1]]]
-
-
-
-sol1 = solve (fst ex1) (snd ex1)
-iter1 = iter (fst ex1) (snd ex1)
-
 iter field state = iterate (\x -> solve field x) state
 
 
 sol ex = solve (fst ex) (snd ex)
 ite ex  = iter (fst ex) (snd ex)
-
-
-
-
-
-
-
-

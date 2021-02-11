@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 095192d0008d472749f1737020f9da7b5442ee1c8ec51cfbfeab9283c0e8f4fb
+-- hash: df3eefc65d84150d4678e03be4fbe8b18eaed132ff801c0f77984d08cd97f716
 
 name:           nonogram
 version:        0.1.0.0
@@ -27,6 +27,7 @@ source-repository head
 
 library
   exposed-modules:
+      Data
       Lib
   other-modules:
       Paths_nonogram
